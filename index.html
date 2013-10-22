@@ -18,12 +18,18 @@
     </head>
     <body>
         <div id="wrapper">
+            <a href="img/earth.png"><img src="img/earth_medium.jpg" style="margin-top: 20px;" /></a>
+
+            <p style="text-align: right; font-style: italic; font-size: 11px;">
+                Render of Earth using my own raytracer
+            </p>
+
             <h1>Emil Hernvall</h1>
 
             <p>
-            I'm a Swedish guy in my mid twenties. I currently work as architect and CTO for a company 
-            called <a href="http://znaptag.com/">Znaptag</a>. This page is a collection of various 
-            experiments I've done throughout the years. Most of what you'll find here is weekend 
+            I'm a Swedish guy in my mid twenties. I'm the co-founder and CTO for a start-up
+            called <a href="http://znaptag.com/">Znaptag</a>. This page is a collection of various
+            experiments I've done throughout the years. Most of what you'll find here is weekend
             projects, but a few are a bit more extensive.
             </p>
 
@@ -44,13 +50,29 @@
             picture about my interests.
             </p>
 
+            <h3>Ray tracer</h3>
+
+            <a href="img/reflection.png"><img src="img/reflection_small.png" /></a>
+
+            <p>
+            A simple experiment and learning project, written in C++. Uses the phong
+            reflection model to shade objects, with full support for reflections.
+            The source code only depends on libgd2. Was also used to render the picture
+            of earth at the top.
+            </p>
+
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/RayTracer">Source code</a>
+            </p>
+
             <h3>UglyLang</h3>
 
             <p>
             Toy programming language. It's currently implemented in Java, but I dream of bootstrapping
             it eventually. Current all execution is interpreted. The language as such is characterized
             by its static type system, which guarantees type safety. It's a cross between the functional
-            and imperative paradigms.
+            and imperative paradigms. The current lack of support for generic programming combined with
+            the strict type safety limits its usability, although I'm hoping to resolve that eventually.
             </p>
 
             <p class="links">
@@ -88,7 +110,7 @@
             <p>
             A visualizer framework for spotify, using the official libspotify. Includes some
             simple FFT-based visualizers, that works somewhat well. Should be easily extendable.
-            Uses the windows DirectDraw API. 
+            Uses the windows DirectDraw API.
             </p>
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/candify">Source code</a>
@@ -144,9 +166,9 @@
 
             <h3>Mosaic</h3>
 
-            <!--<a href="http://blog.c0la.se/examples/mosaic/samples/raven.jpg">
-                <img src="http://blog.c0la.se/examples/mosaic/samples/raven.jpg" height="300" />
-            </a>-->
+            <a href="img/sture.jpg">
+                <img src="img/sture-small.jpg" />
+            </a>
 
             <p>
             A small unix program that constructs an image mosaic from a source image
@@ -173,23 +195,11 @@
 
             <p>
             Experiment with software rasterization. Written mostly as a learning project,
-            and horrendously unoptimized. 
+            and horrendously unoptimized.
             </p>
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/3DEngine">Source code</a>
             &raquo; <a href="downloads/3dengine.jar">Download</a>
-            </p>
-
-            <h3>Quad Tree</h3>
-
-            <p>
-            An implementation of a <a href="http://en.wikipedia.org/wiki/Quadtree">Quad Tree</a>,
-            originally written for use in a Minecraft Server. Optimized for efficiently looking
-            up which of a set of rectangles that a point in 2d space belongs to. Only supports
-            a sub set of operations right now.
-            </p>
-            <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/QuadTree">Source code</a>
             </p>
 
             <h2>Experiments and snippets</h2>
@@ -199,6 +209,18 @@
             </p>
 
             <dl>
+                <dt><a href="https://github.com/EmilHernvall/QuadTree">Quad Tree in Java</a></dt>
+                <dd>
+                An implementation of a <a href="http://en.wikipedia.org/wiki/Quadtree">Quad Tree</a>,
+                originally written for use in a Minecraft Server. Optimized for efficiently looking
+                up which of a set of rectangles that a point in 2d space belongs to. Only supports
+                a sub set of operations right now.
+                </dd>
+                <dt><a href="https://github.com/EmilHernvall/hqx">HQX bindings for PHP</a></dt>
+                <dd>
+                The HQX library provides an algorithm for scaling pixel graphics
+                with superior quality compared to standard interpolation methods.
+                </dd>
                 <dt><a href="https://gist.github.com/1044997">Sudoku Solver in C</a></dt>
                 <dd>
                 Using the naive substitute-and-permute approach.
