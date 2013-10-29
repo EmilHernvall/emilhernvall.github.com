@@ -43,10 +43,32 @@
             <p>
             This is a rather incomplete list of things I've done throughout the years. It's not
             really representative of the work I normally do, but I think it does convey a good
-            picture about my interests.
+            picture about my interests. As you'll find, there's _a lot_ of graphics programming
+            here, but for the most part not on a very high level. I really do enjoy working on
+            stuff that does interesting things on screen. I'm also easily amused with network
+            programming.
             </p>
 
-            <h3>Ray tracer</h3>
+            <p>
+            Almost everything you'll find here is written in one of the following languages:
+            </p>
+
+            <ul>
+                <li>Java</li>
+                <li>Python</li>
+                <li>C/C++</li>
+                <li>PHP</li>
+            </ul>
+
+            <p>
+            I'v spent a lot more time developing for PHP, Java and Python (in that order)
+            than C and C++. I can only imagine that an experienced C++ programmer will
+            cringe at my code, which in many of this projects is little more than
+            C with classes. As you will find, I have learned a few things across the years,
+            though. :)
+            </p>
+
+            <h3>Ray tracer (2013)</h3>
 
             <a href="img/reflection.png"><img src="img/reflection_small.png" /></a>
 
@@ -57,11 +79,19 @@
             of earth at the top.
             </p>
 
+            <p>
+            This is to some extent just a C++ port of the <a href="http://meatfighter.com/juggler/">Amiga Juggler reimplementation</a>,
+            which kinda shows from the structure of the code, but there's a few enhancements
+            of my own. For instance, support for multiple lights. Further work on this
+            project will probably attempt to introduce an acceleration data structure,
+            and some way of loading scenes from disk.
+            </p>
+
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/RayTracer">Source code</a>
             </p>
 
-            <h3>UglyLang</h3>
+            <h3>UglyLang (2012-)</h3>
 
             <p>
             Toy programming language. It's currently implemented in Java, but I dream of bootstrapping
@@ -71,11 +101,19 @@
             the strict type safety limits its usability, although I'm hoping to resolve that eventually.
             </p>
 
+            <p>
+            One of the novel concepts of UglyLang is the unpack statement, which has allowed
+            me to avoid introducing a null value into the language. All variables are required
+            to have a valid value, and if there's several possibilities, unpack can be used
+            to extract the real value into a new scope. This guarantees that no code will
+            ever be executed where the value isn't of the expected type.
+            </p>
+
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/UglyLang">Source code</a>
             </p>
 
-            <h3>Tregmine</h3>
+            <h3>Tregmine (2011-)</h3>
 
             <p>
             Plugin for the bukkit minecraft server, that provides most of the features needed
@@ -87,11 +125,35 @@
             &raquo; <a href="https://github.com/EmilHernvall/Tregmine">Source code</a>
             </p>
 
-            <h3>SassyBarista</h3>
+            <h3>3D Engine (2011)</h3>
+
+            <a href="img/3dengine.jpg"><img src="img/3dengine-small.jpg" /></a>
+
+            <p>
+            Experiment with software rasterization. Written mostly as a learning project,
+            and horrendously unoptimized. When I started out with this, I had no experience
+            whatsoever in 3d programming, and thus I spent some time documenting my research
+            as a diary, which is available in the repository. (I did have a solid understanding
+            of basic linear algebra, though.)
+            </p>
+
+            <p>
+            The major feature I never got around to would be texture mapping, which will
+            probably be added at some point. Still, it'd be hard to argue that this project
+            is suited for any reallife applications, even after that's done.
+            </p>
+
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/3DEngine">Source code</a>
+            &raquo; <a href="downloads/3dengine.jar">Download</a>
+            </p>
+
+            <h3>SassyBarista (2011-2012)</h3>
 
             <p>
             A java implementation of the <a href="http://sass-lang.com/">SASS</a> language, which
-            is a superset of CSS. Based on a JavaCC grammar.
+            is a superset of CSS. Based on a JavaCC grammar. See link for a more complete
+            description.
             </p>
 
             <p class="links">
@@ -99,56 +161,89 @@
             &raquo; <a href="downloads/sassybarista.jar">Download</a>
             </p>
 
-            <h3>Candify</h3>
+            <h3>FatCat (2010-2011)</h3>
+
+            <p>
+            A java implementation of an irc server. It was designed in a way that would
+            make it easy to add other protocols, with a core that simply manages the server
+            state. The only other protocol that I ever tried adding was minecraft support,
+            by embedding it in bukkit, and wrapping the mc-related state in a protocol
+            handler. It worked pretty well, and turned out really cool.</p>
+
+            <p>fatcat has a completely asynchronous network thread using java.nio.
+            There's currently no support for linking other servers, and also no services.
+            I have some wild ideas about expanding fatcat with distributed linking support,
+            and using something like vector clocks to synchronize state, but I'm not
+            sure when I'll get around to that.
+            </p>
+
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/fatcat">Source code</a>
+            &raquo; <a href="downloads/fatcat.jar">Download</a>
+            </p>
+
+            <h3>Candify (December 2010)</h3>
 
             <a href="http://github.com/EmilHernvall/candify/raw/master/candify.png"><img src="img/candify.jpg" /></a>
 
             <p>
             A visualizer framework for spotify, using the official libspotify. Includes some
-            simple FFT-based visualizers, that works somewhat well. Should be easily extendable.
-            Uses the windows DirectDraw API.
+            simple FFT-based visualizers, that doesn't work nearly as well as I'd hoped.
+            This is entirely due to my severely lacking understanding of signal processing.
+            The addition of some type of online filter would probably result in a lot more
+            recognizable beats. It does look pretty nice, though. Uses the windows DirectDraw API.
             </p>
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/candify">Source code</a>
             &raquo; <a href="downloads/candify.zip">Download</a>
             </p>
 
-            <h3>Cropper</h3>
-
-            <a href="http://github.com/EmilHernvall/cropper/raw/master/cropper.png"><img src="img/cropper.jpg" /></a>
-
-            <p>
-            Simple program to crop images quickly. Written using WinApi and GDI+.
-            </p>
-            <p class="links">
-            &raquo; <a href="http://github.com/EmilHernvall/cropper">Source code</a>
-            &raquo; <a href="downloads/cropper.zip">Download</a>
-            </p>
-
-            <h3>Collapsible</h3>
+            <h3>Collapsible (October 2010)</h3>
 
             <a href="http://github.com/EmilHernvall/collapsible/raw/master/collapsible.jpg"><img src="img/collapsible.jpg" /></a>
 
             <p>
-            Horrendously ugly tetris clone. WinApi and DirectDraw.
+            Horrendously ugly tetris clone. WinApi and DirectDraw. My first and final
+            attempt at doing game graphics.
             </p>
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/collapsible">Source code</a>
             &raquo; <a href="downloads/collapsible.zip">Download</a>
             </p>
 
-            <h3>FatCat</h3>
+            <h3>Calculator (2009)</h3>
 
             <p>
-            A java implementation of an irc server. Currently no support for linking
-            other servers, and also no services. Both will hopefully be fixed eventually.
-            </p>
-            <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/fatcat">Source code</a>
-            &raquo; <a href="downloads/fatcat.jar">Download</a>
+            A java program that evaluates arbitrary mathematical expressions.
+            Also includes some primitive plotting capabilities. I wrote this
+            before I had spent any time whatsoever researching parsing. If I
+            redid it today, I'd probably use ANTLR or a recursive descent parser.
+            This project used a completely ad-hoc approach, which turned out
+            surprisingly robust. Features a really crappy math shell.
             </p>
 
-            <h3>Project Euler Solutions</h3>
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/calculator">Source code</a>
+            &raquo; <a href="downloads/calc.jar">Download</a>
+            </p>
+
+            <h3>Cropper (August 2008)</h3>
+
+            <a href="http://github.com/EmilHernvall/cropper/raw/master/cropper.png"><img src="img/cropper.jpg" /></a>
+
+            <p>
+            Simple program to crop images quickly. Written using WinApi and GDI+. I wrote
+            this to optimize my photo editing workflow, since it felt a bit too painful
+            to launch a full image editor every time I simply wanted to crop an image.
+            This is my attempt to solve that specific problem in a really lightweight way.
+            </p>
+
+            <p class="links">
+            &raquo; <a href="http://github.com/EmilHernvall/cropper">Source code</a>
+            &raquo; <a href="downloads/cropper.zip">Download</a>
+            </p>
+
+            <h3>Project Euler Solutions (2008)</h3>
 
             <p>
             Solutions for the hundred first <a href="http://projecteuler.net/">Project Euler</a>
@@ -156,11 +251,20 @@
             problems (probably less than five) have partial solutions that doesn't give the
             correct answer.
             </p>
+
+            <p>
+            This repository contains solutions in several different languages. Most of them
+            are written in python, since I started doing Project Euler solutions as a way
+            of learning that language. However, there are some solutions I've done in C as
+            a way of practicing low-level optimization, and there's a few in Haskell which
+            I also did for learning purposes. Warning: My Haskell is pretty awful.
+            </p>
+
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/projecteuler">Source code</a>
             </p>
 
-            <h3>Mosaic</h3>
+            <h3>Mosaic (2008)</h3>
 
             <a href="img/sture.jpg">
                 <img src="img/sture-small.jpg" />
@@ -168,43 +272,49 @@
 
             <p>
             A small unix program that constructs an image mosaic from a source image
-            and a collection of smaller images (mosaic bricks).
+            and a collection of smaller images (mosaic bricks). There's a few major
+            issues with this program:
             </p>
+
+            <ol>
+                <li>It does not attempt to avoid putting identical tiles next to each other.</li>
+                <li>It's O(n) in the number of tiles. A better idea would be to use something
+                like kd-trees to quickly find a tile close to a pixels color in 3d RGB space.</li>
+            </ol>
+
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/mosaic">Source code</a>
             </p>
 
-            <h3>Calculator</h3>
+            <h3>ImageRetarget (2007)</h3>
 
             <p>
-            A java program that evaluates arbitrary mathematical expressions.
-            Also includes some primitive plotting capabilities.
+            An implementation of the <a href="http://en.wikipedia.org/wiki/Seam_carving">seam carving</a>
+            algorithm I did back when it was first released. I was absolutely fascinated by the paper,
+            and implemented it in both PHP and Java. This repository contains only the java-version,
+            which has some interesting quirks. For instance, I'm calculating the energy of the image
+            using a literal interpretation of the method in the paper rather than using a simple sobel
+            transform. This involves interpolating the pixels as a cubic equation and calculating the
+            partial derivatives. As far as I can tell, this has no real advantages over the sobel
+            approach, but it's a rather beuatiful over-complication.
             </p>
+
             <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/calculator">Source code</a>
-            &raquo; <a href="downloads/calc.jar">Download</a>
-            </p>
-
-            <h3>3D Engine</h3>
-
-            <a href="img/3dengine.jpg"><img src="img/3dengine-small.jpg" /></a>
-
-            <p>
-            Experiment with software rasterization. Written mostly as a learning project,
-            and horrendously unoptimized.
-            </p>
-            <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/3DEngine">Source code</a>
-            &raquo; <a href="downloads/3dengine.jar">Download</a>
+            &raquo; <a href="https://github.com/EmilHernvall/imageretarget">Source code</a>
             </p>
 
             <h2>Experiments and snippets</h2>
 
             <p>
-            This is a few smaller things that I've uploaded as <a href="http://gist.github.com/EmilHernvall">gists</a>.
+            Smaller projects and experiments I've done, of somewhat varying quality.
             </p>
 
             <dl>
+                <dt><a href="https://github.com/EmilHernvall/playlistcopy">PlaylistCopy</a></dt>
+                <dd>
+                Very small program for copying the contents of a .m3u playlist to a specified
+                target directory.
+                </dd>
                 <dt><a href="https://github.com/EmilHernvall/QuadTree">Quad Tree in Java</a></dt>
                 <dd>
                 An implementation of a <a href="http://en.wikipedia.org/wiki/Quadtree">Quad Tree</a>,
