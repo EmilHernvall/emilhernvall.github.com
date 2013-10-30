@@ -6,13 +6,46 @@
                 font-family: Arial;
                 margin: 0 auto;
                 width: 800px;
+                color: #333;
             }
             dl dt {
                 margin-top: 10px;
                 font-weight: bold;
+                line-height: 1.5em;
+            }
+            p {
+                line-height: 1.5em;
             }
             p.links {
                 font-weight: bold;
+                text-align: right;
+            }
+            h1 {
+                font-family: serif;
+                border-bottom: 2px solid #777;
+            }
+            h2 {
+                border-bottom: 1px solid #ccc;
+            }
+            h3 {
+                margin-top: 40px;
+            }
+            .left {
+                width: 570px;
+                float: left;
+            }
+            .right {
+                width: 210px;
+                float: right;
+            }
+            .clear {
+                clear: both;
+                font-size: 1px;
+                line-height: 1px;
+            }
+            .image {
+                text-align: center;
+                padding: 20px;
             }
         </style>
     </head>
@@ -22,21 +55,33 @@
 
             <h1>Emil Hernvall</h1>
 
-            <p>
-            I'm a Swedish guy in my mid twenties. I'm the co-founder and CTO for a start-up
-            called <a href="http://znaptag.com/">Znaptag</a>. This page is a collection of various
-            experiments I've done throughout the years. Most of what you'll find here is weekend
-            projects, but a few are a bit more extensive.
-            </p>
+            <div class="left">
+                <p>
+                I'm a Swedish guy in my mid twenties. I'm the co-founder and CTO for a start-up
+                called <a href="http://znaptag.com/">Znaptag</a>. This page is a collection of various
+                experiments I've done throughout the years. Most of what you'll find here are weekend
+                projects, but a few are a bit more extensive.
+                </p>
 
-            <p>
-            Although not as much nowadays, I used to be an active member at Stack Overflow. You can
-            check out my profile below.
-            </p>
+                <p>
+                Although not as much nowadays, I used to be an active member at Stack Overflow. You can
+                check out my profile to the left.
+                </p>
+            </div>
 
-            <a href="http://stackoverflow.com/users/73772/emil-h">
-                <img src="http://stackoverflow.com/users/flair/73772.png" width="208" height="58">
-            </a>
+            <div class="right">
+                <p>
+                <img src="https://2.gravatar.com/avatar/88d764e133d0f8efa23c7fc033bfcb34?d=https%3A%2F%2Fidenticons.github.com%2Fcc401ab439f2fe0a467c6ee73961bdef.png&r=x&s=208" />
+                </p>
+
+                <p>
+                <a href="http://stackoverflow.com/users/73772/emil-h">
+                    <img src="http://stackoverflow.com/users/flair/73772.png" width="208" height="58">
+                </a>
+                </p>
+            </div>
+
+            <div class="clear">&nbsp;</div>
 
             <h2>Projects</h2>
 
@@ -70,7 +115,9 @@
 
             <h3>Ray tracer (2013)</h3>
 
+            <p class="image">
             <a href="img/reflection.png"><img src="img/reflection_small.png" /></a>
+            </p>
 
             <p>
             A simple experiment and learning project, written in C++. Uses the phong
@@ -127,7 +174,9 @@
 
             <h3>3D Engine (2011)</h3>
 
+            <p class="image">
             <a href="img/3dengine.jpg"><img src="img/3dengine-small.jpg" /></a>
+            </p>
 
             <p>
             Experiment with software rasterization. Written mostly as a learning project,
@@ -184,7 +233,9 @@
 
             <h3>Candify (December 2010)</h3>
 
+            <p class="image">
             <a href="http://github.com/EmilHernvall/candify/raw/master/candify.png"><img src="img/candify.jpg" /></a>
+            </p>
 
             <p>
             A visualizer framework for spotify, using the official libspotify. Includes some
@@ -200,7 +251,9 @@
 
             <h3>Collapsible (October 2010)</h3>
 
+            <p class="image">
             <a href="http://github.com/EmilHernvall/collapsible/raw/master/collapsible.jpg"><img src="img/collapsible.jpg" /></a>
+            </p>
 
             <p>
             Horrendously ugly tetris clone. WinApi and DirectDraw. My first and final
@@ -229,7 +282,9 @@
 
             <h3>Cropper (August 2008)</h3>
 
+            <p class="image">
             <a href="http://github.com/EmilHernvall/cropper/raw/master/cropper.png"><img src="img/cropper.jpg" /></a>
+            </p>
 
             <p>
             Simple program to crop images quickly. Written using WinApi and GDI+. I wrote
@@ -382,5 +437,16 @@
             You can get in contact with me using my gmail. My username is emil.hernvall.
             </p>
         </div>
+
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-45279607-1', 'emilhernvall.github.io');
+          ga('send', 'pageview');
+
+        </script>
     </body>
 </html>
