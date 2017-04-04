@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bubblespinner</title>
+    <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+    </style>
+
+    <script type="text/javascript">
+    (function() {
+        var MARGIN = 1/20;
+
+        var NUM_ROWS = 5;
+        var RADIUS = 1/35;
+        var DRAW_RADIUS = 0.9*RADIUS;
+        var COLORS = ["#dd3333", "#33dd33", "#3333dd", "#dddd33", "#33dddd", "#dd33dd"];
+        var COLLAPSE_TICKS = 30;
+        var EXPLOSION_TICKS = 60;
+        var BUBBLE_MASS = 2;
+        var SHOOTER_LENGTH = 1/20;
+        var PROJECTILE_MASS = 50;
+        var PROJECTILE_VELOCITY = 1/25;
+        var GRAVITY = 1/1000;
+        var MAX_BOUNCES = 10;
+        var DEBUG = false;
+
+        var Extend = function(copy, replace) {
+            var newObject = {};
+            Object.keys(copy).forEach(function(key) { newObject[key] = copy[key]; });
+            Object.keys(replace).forEach(function(key) { newObject[key] = replace[key]; });
+            return newObject;
+        };
+
+        // Our pleasingly compact 2d-vector representation
+        var Point = function(x, y) {
+            var obj = { x: x, y: y };
+            obj.add = function(b) { return Point(this.x + b.x, this.y + b.y); };
+            obj.sub = function(b) { return Point(this.x - b.x, this.y - b.y); };
+            obj.mul = function(k) { return Point(k*this.x, k*this.y); };
+            obj.div = function(k) { return Point(this.x/k, this.y/k); };
+            obj.length = function() { return Math.sqrt(this.x*this.x + this.y*this.y); };
+            obj.norm = function() { return this.div(this.length()); };
+            obj.dot = function(b) { return this.x*b.x + this.y*b.y; };
+            obj.crossZ = function(b) { return this.x*b.y - this.y*b.x; };
+
+            return obj;
+        };
+
+        // Convenient function for generating point on a circles perimeter
+        var CircleEdge = function(r, deg) { return Point(r*Math.cos(deg), r*Math.sin(deg)); };
+
+        // Representation of a single bubble
+        var Bubble = function(n, i, color) {
+            var obj = {};
+            obj.n = n; // Row number, counted from the center hexagon
+            obj.i = i; // Index on row
+            obj.j = i % n; // Our hexagonal grid consists of six "groups", with j being the index within a group
+            obj.k = (i / n)|0; // k is the group number, i.e. k*n + j = i
+            obj.key = (n << 16) | i; // A unique key for use with maps and such
+            obj.r = 2*RADIUS*n; // Distance from the center
+            obj.color = color;
+
+            // Collapse state, for keeping track of position when the bubble is falling of the grid
+            obj.collapsePosition = null; // Current position, where the ball should be drawn
+            obj.collapseVelocity = null;
+            obj.collapseFrame = 0; // The number of ticks since the start of the collapse
+            obj.collapseRadius = RADIUS; // The current radius, since we're changing it a bit during the course of collapse
+
+            // Return a collapsing version of this bubble
+            obj.collapsing = function(rotation, angularVelocity, shotVelocity, bubblesAffected) {
+                // Calculate the velocity from rotation around the axis
+                var rotationalVelocity = this.velocity(rotation, angularVelocity);
+
+                // Calculate the velocity given by the collision with the projectile,
+                // based on conservation of momentum. The momentum of the incoming
+                // projectile is split equally across all the bubbles coming loose.
+                // This velocity is to high for a nice animation, so we scale it
+                // down a bit, completely arbitrarily.
+                var projectileInducedVelocity = shotVelocity.mul(PROJECTILE_MASS)
+                    .div(10*bubblesAffected*BUBBLE_MASS);
+
+                return Extend(this, {
+                    collapsePosition: this.position(rotation),
+                    collapseVelocity: rotationalVelocity.add(projectileInducedVelocity)
+                });
+            };
+
+            // Perform the next tick of the collapse animation
+            obj.collapseTick = function() {
+                var progress = this.collapseFrame / COLLAPSE_TICKS;
+                return Extend(this, {
+                    collapsePosition: this.collapsePosition.add(this.collapseVelocity),
+                    collapseVelocity: this.collapseVelocity.add(Point(0, GRAVITY)),
+                    collapseFrame: this.collapseFrame + 1,
+                    collapseRadius: (1+1*progress)*RADIUS // Animate radius slightly during collapse
+                });
+            };
+
+            // Calculate the position of this bubble based on rotation
+            obj.position = function(rotation) {
+                // begin and end represents two edges of a hexagon with a radius corresponding
+                // to this level. Next, a vector between these two points is constructed,
+                // and this vector is divided by the number of bubbles that we want to fit.
+                // We get the final position by adding this vector a specific number of times
+                // to the begin-vector.
+                var center = Point(0.5, 0.5),
+                    begin = center.add(CircleEdge(this.r, this.k*Math.PI/3 + rotation)),
+                    end = center.add(CircleEdge(this.r, (this.k+1)*Math.PI/3 + rotation)),
+                    step = end.sub(begin).div(this.n);
+
+                return begin.add(step.mul(this.j));
+            };
+
+            obj.velocity = function(rotation, angularVelocity) {
+                var a = this.position(rotation),
+                    b = this.position(rotation+angularVelocity);
+
+                return b.sub(a);
+            };
+
+            obj.getAdjacentPositions = function() {
+                var neighbours = [];
+
+                var bubblesOnCurrentRow = 6*this.n,
+                    bubblesOnRowAbove = 6*(this.n+1),
+                    bubblesOnRowBelow = 6*(this.n-1);
+
+                // There are always two bubbles on the same row
+                neighbours.push({ n: this.n, i: (this.i+1) % bubblesOnCurrentRow });
+                neighbours.push({ n: this.n, i: (this.i+bubblesOnCurrentRow-1) % bubblesOnCurrentRow });
+
+                // Bubbles with j=0 (the first of each group) has three above and one below
+                if (this.j == 0) {
+                    neighbours.push({ n: this.n+1, i: ((this.n+1)*this.k-1+bubblesOnRowAbove) % bubblesOnRowAbove });
+                    neighbours.push({ n: this.n+1, i: (this.n+1)*this.k % bubblesOnRowAbove });
+                    neighbours.push({ n: this.n+1, i: ((this.n+1)*this.k+1) % bubblesOnRowAbove });
+                    if (this.n > 1) { neighbours.push({ n: this.n-1, i: (this.n-1)*this.k % bubblesOnRowBelow }); }
+                }
+                // All other positions have two below and two above
+                else {
+                    neighbours.push({ n: this.n+1, i: ((this.n+1)*this.k+this.j) % bubblesOnRowAbove });
+                    neighbours.push({ n: this.n+1, i: ((this.n+1)*this.k+this.j+1) % bubblesOnRowAbove });
+                    if (this.n > 1) {
+                        neighbours.push({ n: this.n-1, i: ((this.n-1)*this.k+this.j-1+bubblesOnRowBelow) % bubblesOnRowBelow });
+                        neighbours.push({ n: this.n-1, i: ((this.n-1)*this.k+this.j) % bubblesOnRowBelow });
+                    }
+                }
+
+                return neighbours;
+            };
+
+            obj.isAdjacent = function(other) {
+                return this.getAdjacentPositions()
+                    .filter(function(bubble) { return other.n == bubble.n && other.i == bubble.i; })
+                    .length > 0;
+            };
+
+            return obj;
+        };
+
+        // A set of all bubbles in play, as well as the bubbles currently undergoing collapse
+        var BubbleState = function() {
+
+            var obj = {};
+
+            obj.gameOver = false;
+            obj.score = 0;
+            obj.level = 1;
+            obj.colors = COLORS; // The colors still in play (once all bubbles with a color have been removed, no more of that color will show up)
+            obj.bubbles = []; // Bubbles still in play
+            obj.collapsing = []; // Bubbles that has been removed from play, but are still being animated
+
+            // Find an object that intersects the projectile at its current position, if there is one
+            obj.checkForCollision = function(pos, rotation) {
+
+                // Check the center axis
+                var distanceFromHexagon = pos.sub(Point(0.5, 0.5)).length();
+                if (distanceFromHexagon < 2*DRAW_RADIUS) {
+                    return {
+                        hit: true,
+                        type: "hexagon"
+                    };
+                }
+
+                // Check for collision with a bubble
+                for (var i = 0; i < this.bubbles.length; i++) {
+                    var bubble = this.bubbles[i],
+                        bubblePosition = bubble.position(rotation),
+                        d = pos.sub(bubblePosition).length();
+
+                    if (d < 2*DRAW_RADIUS) {
+                        return {
+                            hit: true,
+                            type: "bubble",
+                            bubble: bubble
+                        };
+                    }
+                }
+
+                // Otherwise, bail
+                return {
+                    hit: false
+                };
+            };
+
+            // Starting from a given bubble, traverse all adjacent bubbles that do not
+            // match a provided criteria
+            obj.traverse = function(targetBubble, criteria) {
+                var stack = [targetBubble];
+                var seen = {};
+                while (stack.length > 0) {
+                    var current = stack.pop();
+
+                    seen[current.key] = true;
+
+                    this.bubbles.forEach(function(bubble) {
+                        if (seen[bubble.key] === true) {
+                            return;
+                        }
+                        if (!current.isAdjacent(bubble)) {
+                            return;
+                        }
+                        if (criteria(current, bubble)) {
+                            return;
+                        }
+
+                        stack.push(bubble);
+                    });
+                }
+
+                return seen;
+            };
+
+            // Handle a collision
+            obj.collide = function(collision, projectile, rotation, angularVelocity) {
+
+                // We start off by constructing all possible new bubble positions
+                var candidateBubbles = [];
+
+                // The possible positions are the ones adjacent to a bubble, or...
+                if (collision.type == "bubble") {
+                    candidateBubbles = collision.bubble.getAdjacentPositions()
+                        .map(function(pos) { return Bubble(pos.n, pos.i, projectile.color); });
+                }
+                // ...the ring around the center axis.
+                else if (collision.type == "hexagon" ){
+                    for (var i = 0; i < 6; i++) {
+                        candidateBubbles.push(Bubble(1, i, projectile.color));
+                    }
+                }
+
+                // The possible bubbles are filtered (inefficiently) so that only unoccupied positions remain
+                var doesPositionExist = function(candidate) {
+                    return this.bubbles.filter(function(bubble) { return bubble.key == candidate.key; }).length > 0;
+                }.bind(this);
+                candidateBubbles = candidateBubbles.filter(function(bubble) { return !doesPositionExist(bubble); }.bind(this));
+
+                // The remaining bubbles are evaluated based on their distance from the projectile position
+                for (var i = 0; i < candidateBubbles.length; i++) {
+                    var candidate = candidateBubbles[i],
+                        candidatePosition = candidate.position(rotation);
+
+                    candidate.targetDistance = candidatePosition.sub(projectile.position).length();
+                }
+
+                candidateBubbles.sort(function(a,b) { return a.targetDistance >= b.targetDistance ? 1 : -1; });
+
+                // Finally, we pick the best match
+                var newBubble = candidateBubbles[0];
+
+                // Once we know where the new bubble will end up, we can traverse the adjacent bubbles
+                // to identify the ones with the same color
+                var hits = this.traverse(newBubble, function(current, child) {
+                    return current.color != child.color;
+                });
+
+                var remainingBubbles, collapsingBubbles;
+
+                // If there are less than three adjacent bubbles of the same color,
+                // no collapse will occur
+                if (Object.keys(hits).length < 3) {
+                    remainingBubbles = this.bubbles.concat([newBubble]);
+                    collapsingBubbles = this.collapsing;
+                }
+                // If there is collapse:
+                else {
+                    // Once bubbles of the same color has been removed, there might be
+                    // bubbles that end up unconnected from the center. These orphans
+                    // should be removed. We start off by traversing outwards from
+                    // all remaining first row bubbles and marking the ones that remain.
+                    var unorphaned = {};
+
+                    // The outer loop identifies the first row bubbles that still exist
+                    this.bubbles
+                        .filter(function(bubble) { return hits[bubble.key] !== true }) // Ignore the bubbles found during color adjacency search, since they'll be removed
+                        .filter(function(bubble) { return bubble.n === 1 }) // First row only
+                        .forEach(function(firstRowBubble) {
+
+                            // In here, we perform the actual traversal, and mark all hits for later use
+                            Object.keys(this.traverse(firstRowBubble, function(current, child) {
+                                return hits[child.key] === true; // Ignore removed bubbles, again
+                            })).forEach(function(key) {
+                                unorphaned[key] = true;
+                            });
+                        }.bind(this));
+
+                    // The remaining bubbles shouldn't be in the hits, but should not be orphans
+                    var remainingBubbles = this.bubbles
+                        .filter(function(bubble) { return hits[bubble.key] !== true; })
+                        .filter(function(bubble) { return unorphaned[bubble.key] === true; });
+
+                    // The collapsing bubbles must either be hit, or orphans
+                    var collapsingBubbles = this.bubbles
+                        .filter(function(bubble) { return hits[bubble.key] === true || unorphaned[bubble.key] !== true; });
+
+                    collapsingBubbles = collapsingBubbles.map(function(bubble) {
+                            return bubble.collapsing(rotation, angularVelocity, projectile.velocity(), collapsingBubbles.length+1);
+                        });
+
+                    // Finally, append the new bubble added during this collision to the collapsing list
+                    collapsingBubbles = collapsingBubbles.concat([newBubble.collapsing(rotation, angularVelocity, projectile.velocity(), collapsingBubbles.length+1)]);
+                }
+
+                // Update the list of remaining colors
+                var colorMap = {};
+                remainingBubbles
+                    .map(function(bubble) { return bubble.color; })
+                    .forEach(function(color) { colorMap[color] = true; });
+
+                // Return a new brand new state
+                return Extend(this, {
+                    score: this.score + this.level * collapsingBubbles.length,
+                    colors: Object.keys(colorMap),
+                    bubbles: remainingBubbles,
+                    collapsing: this.collapsing.concat(collapsingBubbles),
+                });
+            };
+
+            // Calculate the moment of inertia around the axis of rotation for all live bubbles.
+            // This will be used to calculate rotation speed upon impact.
+            obj.momentOfInertia = function() {
+                var momentOfInertia = 0;
+                for (var i = 0; i < this.bubbles.length; i++) {
+                    var bubble = this.bubbles[i],
+                        axisLength = bubble.position(0).sub(Point(0.5, 0.5)).length();
+
+                    momentOfInertia += BUBBLE_MASS*axisLength*axisLength;
+                }
+
+                return momentOfInertia;
+            };
+
+            obj.tick = function(rotation) {
+                // Animate collapsing bubbles
+                var newCollapsing = this.collapsing
+                    .map(function(bubble) {
+                        return bubble.collapseTick(); // Update position
+                    })
+                    .filter(function(bubble) {
+                        return bubble.collapseFrame < COLLAPSE_TICKS; // Remove the ones that have finished animating
+                    });
+
+                // Gake over occurs when a bubble still in play hits the edges of the game
+                var gameOver = this.bubbles.filter(function(bubble) {
+                    var p = bubble.position(rotation);
+                    if (p.x < RADIUS) {
+                        return true;
+                    } else if (p.x > 1 - RADIUS) {
+                        return true;
+                    } else if (p.y < RADIUS) {
+                        return true;
+                    } else if (p.y > 1 - RADIUS) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }).length > 0;
+
+                return Extend(this, {
+                    gameOver: gameOver,
+                    collapsing: newCollapsing
+                });
+            };
+
+            // Initialize fresh layers of bubbles
+            obj.setupBubbles = function() {
+                for (var n = 1; n <= NUM_ROWS; n++) {
+                    for (var i = 0; i < 6*n; i++) {
+                        this.bubbles.push(Bubble(n, i, this.randomColor()));
+                    }
+                }
+            };
+
+            // Return a state with a fresh set of bubbles, the same score, and a one step higher level
+            obj.nextLevel = function() {
+                var newState = Extend(this, {
+                    gameOver: false,
+                    level: this.level + 1,
+                    colors: COLORS,
+                    bubbles: [],
+                    collapsing: []
+                });
+
+                newState.setupBubbles();
+
+                return newState;
+            };
+
+            obj.levelComplete = function() {
+                return this.bubbles.length == 0;
+            };
+
+            // Return a random color from the colors still ive
+            obj.randomColor = function() {
+                return this.colors[(Math.random()*this.colors.length)|0];
+            };
+
+            // Create our initial set of bubbles
+            obj.setupBubbles();
+
+            return obj;
+        };
+
+        var ProjectileState = function(bubbleState) {
+            var obj = {};
+            obj.color = bubbleState.randomColor();
+            obj.position = Point(0.5, RADIUS);
+            obj.direction = Point(0, 1.0);
+            obj.moving = false;
+            obj.bounces = 0;
+            obj.explosionTick = 0;
+
+            // Create a new projectile state indicating that a shot is in progress
+            obj.shoot = function(direction) {
+                return Extend(this, {
+                    moving: true,
+                    direction: direction
+                });
+            };
+
+            obj.velocity = function() {
+                return this.direction.mul(PROJECTILE_VELOCITY);
+            };
+
+            obj.isExploding = function() {
+                return this.bounces > MAX_BOUNCES;
+            };
+
+            obj.hasFinishedExploding = function() {
+                return this.explosionTick > EXPLOSION_TICKS;
+            };
+
+            obj.getExplosionRadius = function() {
+                return 0.25*this.explosionTick/EXPLOSION_TICKS;
+            };
+
+            obj.getExplosionOffset = function() {
+                return this.explosionTick/EXPLOSION_TICKS*2*Math.PI;
+            };
+
+            // Update the projectile position and return a new projectile state
+            obj.tick = function(surface) {
+
+                // Calculate the next position by adding our velocity vector to the current position
+                var newPosition = this.position.add(this.velocity());
+
+                // Check if we are going out of bounds, and reflect if necessary
+                var newDirection = this.direction;
+                var bounced = false;
+                if (newPosition.x > 1 - RADIUS) {
+                    newDirection = Point(-newDirection.x, newDirection.y);
+                    bounced = true;
+                } else if (newPosition.x < RADIUS) {
+                    newDirection = Point(-newDirection.x, newDirection.y);
+                    bounced = true;
+                }
+
+                if (newPosition.y > 1 - RADIUS) {
+                    newDirection = Point(newDirection.x, -newDirection.y);
+                    bounced = true;
+                } else if (newPosition.y < RADIUS) {
+                    newDirection = Point(newDirection.x, -newDirection.y);
+                    bounced = true;
+                }
+
+                var bounces = this.bounces;
+                if (bounced) {
+                    bounces++;
+                }
+
+                return Extend(this, {
+                    explosionTick: this.isExploding() ? this.explosionTick + 1 : 0,
+                    bounces: bounces,
+                    position: newPosition,
+                    direction: newDirection,
+                    moving: true
+                });
+            };
+
+            return obj;
+        };
+
+        // The GameSurface is responsible for performing all actual drawing, the handling
+        // of user events, and for deriving the basic dimensions.
+        var GameSurface = function(canvas) {
+
+            var ctx = canvas.getContext("2d");
+
+            var obj = {};
+
+            var colorShift = function(c, a) {
+                return "#" + c.match(/^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/)
+                    .slice(1)
+                    .map(function(c) {
+                        return (Math.min(Math.max((a*parseInt(c, 16))|0,0),0xFF)).toString(16);
+                    })
+                    .join("");
+            };
+
+            obj.updateSize = function() {
+                var size = Math.min(window.innerWidth, window.innerHeight);
+                canvas.width = size;
+                canvas.height = size;
+
+                this.scaleFactor = (1-2*MARGIN)*size;
+                this.margin = MARGIN*size;
+                this.canvasPosition = Point(canvas.getBoundingClientRect().left + this.margin, canvas.getBoundingClientRect().top + this.margin);
+                this.size = size - 2*this.margin;
+                this.center = Point(size/2, size/2);
+                this.translate = Point(this.margin, this.margin);
+                this.shooterPosition = Point(this.center.x, this.margin+RADIUS*this.scaleFactor);
+                this.mousePosition = this.shooterPosition.add(Point(0, 1));
+            };
+
+            obj.drawHexagon = function(rotation, shake) {
+                ctx.beginPath();
+                for (var i = 0; i <= 6; i++) {
+                    var p = this.center.add(shake).add(CircleEdge(RADIUS*this.scaleFactor, Math.PI*i/3 + rotation));
+                    ctx.lineTo(p.x, p.y); // When there are no points in the path, the specification dictates that lineTo works as moveTo
+                }
+
+                ctx.fillStyle = "#555";
+                ctx.fill();
+            };
+
+            obj.drawBubble = function(p, rotation, color, radius) {
+                var p2 = p.add(CircleEdge(0.5*radius*this.scaleFactor, -Math.PI/4 + rotation));
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, radius*this.scaleFactor, 0, 2*Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(p2.x, p2.y, 0.30*radius*this.scaleFactor, 0, 2*Math.PI);
+                ctx.fillStyle = colorShift(color, 1.1);
+                ctx.fill();
+            };
+
+            obj.drawBubbles = function(bubbleState, rotation, shake) {
+                bubbleState.bubbles.forEach(function(bubble) {
+                    var p = bubble.position(rotation).mul(this.scaleFactor).add(this.translate).add(shake);
+                    this.drawBubble(p, rotation, bubble.color, DRAW_RADIUS);
+
+                    if (DEBUG) {
+                        ctx.font = "10px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "#000";
+                        ctx.fillText(bubble.n + "," + bubble.i + "," + bubble.j + "," + bubble.k, p.x, p.y);
+                    }
+                }.bind(this));
+            };
+
+            obj.drawCollapsingBubbles = function(bubbleState) {
+                bubbleState.collapsing.forEach(function(bubble) {
+                    var p = bubble.collapsePosition.mul(this.scaleFactor).add(this.translate);
+
+                    this.drawBubble(p, 0, bubble.color, bubble.collapseRadius);
+                }.bind(this));
+            };
+
+            obj.drawShooter = function() {
+                var shooterVector = this.mousePosition.sub(this.shooterPosition).norm().mul(SHOOTER_LENGTH*this.scaleFactor),
+                    shooterTarget = this.shooterPosition.add(shooterVector);
+
+                ctx.beginPath();
+                ctx.moveTo(this.shooterPosition.x, this.shooterPosition.y);
+                ctx.lineTo(shooterTarget.x, shooterTarget.y)
+                ctx.strokeStyle = "#000";
+                ctx.stroke();
+            };
+
+            obj.drawProjectile = function(projectileState) {
+                var p = projectileState.position.mul(this.scaleFactor).add(this.translate);
+                if (projectileState.isExploding()) {
+                    var shards = 6;
+                    var offset = projectileState.getExplosionOffset();
+                    for (var i = 0; i < shards; i++) {
+                        var p2 = p.add(CircleEdge(projectileState.getExplosionRadius(),
+                                                  offset + i*2*Math.PI/shards).mul(this.scaleFactor));
+
+                        ctx.beginPath();
+                        ctx.moveTo(p2.x, p2.y);
+                        ctx.arc(p2.x,
+                                p2.y,
+                                projectileState.getExplosionRadius()*this.scaleFactor,
+                                offset+(i-0.5)*2*Math.PI/shards,
+                                offset+(i+0.5)*2*Math.PI/shards);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.fillStyle = projectileState.color;
+                        ctx.fill();
+                    }
+                } else {
+                    this.drawBubble(p, 0, projectileState.color, DRAW_RADIUS);
+                }
+            };
+
+            obj.drawGameOver = function(bubbleState) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "rgba(255, 100, 100, 1)";
+                ctx.font = "48px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("GAME OVER", canvas.width/2, 1*canvas.height/3);
+
+                ctx.font = "20px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                ctx.fillText("Your score was: " + bubbleState.score, canvas.width/2, canvas.height/2);
+
+                ctx.font = "24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "rgba(100, 255, 100, 1)";
+                ctx.fillText("Click to Retry", canvas.width/2, 2*canvas.height/3);
+            };
+
+            obj.drawLevelComplete = function(bubbleState) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "rgba(100, 255, 100, 1)";
+                ctx.font = "48px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Level Complete!", canvas.width/2, 1*canvas.height/3);
+
+                ctx.font = "20px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                ctx.fillText("Your score is: " + bubbleState.score, canvas.width/2, canvas.height/2);
+
+                ctx.font = "24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "rgba(100, 255, 100, 1)";
+                ctx.fillText("Click to play next level", canvas.width/2, 2*canvas.height/3);
+            };
+
+            obj.draw = function(bubbleState, projectileState, rotation) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.font = "24px sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "bottom";
+                ctx.fillStyle = "rgba(50, 50, 50, 1)";
+                ctx.fillText("Score: " + bubbleState.score, this.margin, this.margin);
+
+                ctx.fillStyle = "#eee";
+                ctx.fillRect(this.margin, this.margin, this.size, this.size);
+
+                var shake = Point(0, 0);
+                if (projectileState.isExploding()) {
+                    shake = Point(0.02*(Math.random()-1/2)*this.scaleFactor, 0.02*(Math.random()-1/2)*this.scaleFactor);
+                }
+
+                this.drawHexagon(rotation, shake);
+                if (!bubbleState.levelComplete()) {
+                    this.drawShooter(this.shooterPosition);
+                    this.drawBubbles(bubbleState, rotation, shake);
+                    this.drawProjectile(projectileState);
+                }
+                this.drawCollapsingBubbles(bubbleState);
+
+                if (bubbleState.gameOver) {
+                    this.drawGameOver(bubbleState);
+                } else if (bubbleState.bubbles.length == 0) {
+                    this.drawLevelComplete(bubbleState);
+                }
+            };
+
+            canvas.addEventListener("click", function(e) {
+                var shotDirection = this.mousePosition.sub(this.shooterPosition).norm();
+                this.onClick(shotDirection);
+            }.bind(obj));
+            canvas.addEventListener("mousemove", function(e) {
+                this.mousePosition = Point(e.clientX, e.clientY).sub(this.canvasPosition).add(this.translate);
+                if (this.mousePosition.y < this.margin) {
+                    this.mousePosition.y = this.margin;
+                }
+            }.bind(obj));
+            canvas.addEventListener("touchmove", function(e) {
+                this.mousePosition = Point(e.touches[0].clientX, e.touches[0].clientY).sub(this.canvasPosition).add(this.translate);
+                e.preventDefault();
+                e.stopPropagation();
+            }.bind(obj));
+            canvas.addEventListener("touchend", function(e) {
+                var shotDirection = this.mousePosition.sub(this.shooterPosition).norm();
+                this.onClick(shotDirection);
+                e.preventDefault();
+                e.stopPropagation();
+            }.bind(obj));
+            window.addEventListener("resize", function() {
+                this.updateSize();
+            }.bind(obj));
+
+            obj.updateSize();
+
+            return obj;
+        };
+
+        if (DEBUG) {
+            window.stateHistory = [];
+        }
+
+        window.addEventListener("load", function() {
+            var surface = GameSurface(document.querySelector("#bubblespinner-canvas")),
+                bubbleState = BubbleState(),
+                projectileState = ProjectileState(bubbleState),
+                rotation = -Math.PI/2,
+                angularVelocity = 0,
+                tick = 0,
+                tickInterval = 1;
+
+            surface.onClick = function(shotDirection) {
+                if (bubbleState.gameOver) {
+                    bubbleState = BubbleState();
+                    projectileState = ProjectileState(bubbleState);
+                    rotation = 0;
+                    angularVelocity = 0;
+                    tick = 0;
+                    tickInterval = 1;
+
+                    update();
+                    return;
+                } else if (bubbleState.levelComplete()) {
+                    bubbleState = bubbleState.nextLevel();
+                    projectileState = ProjectileState(bubbleState);
+                    rotation = 0;
+                    angularVelocity = 0;
+                    tick = 0;
+                    tickInterval = 1;
+                    return;
+                }
+
+                if (projectileState.moving) {
+                    return;
+                }
+
+                projectileState = projectileState.shoot(shotDirection);
+
+                if (DEBUG) {
+                    window.stateHistory.push({
+                        bubbleState: bubbleState,
+                        projectileState: projectileState,
+                        rotation: rotation,
+                        angularVelocity: angularVelocity
+                    });
+                }
+            };
+
+            if (DEBUG) {
+                window.prevGameState = function() {
+                    var state = stateHistory[stateHistory.length-1];
+                    bubbleState = state.bubbleState;
+                    projectileState = state.projectileState;
+                    rotation = state.rotation;
+                    angularVelocity = state.angularVelocity;
+                };
+
+                window.setTickInterval = function(n) {
+                    tickInterval = n;
+                };
+
+                window.setGameState = function(state) {
+                    bubbleState = state.bubbleState;
+                    projectileState = state.projectileState;
+                    rotation = state.rotation;
+                    angularVelocity = state.angularVelocity;
+                };
+            }
+
+            var update = function() {
+                if (tick++ % tickInterval != 0) {
+                    requestAnimationFrame(update);
+                    return;
+                }
+
+                if (projectileState.hasFinishedExploding()) {
+                    projectileState = ProjectileState(bubbleState);
+                } else if (projectileState.isExploding()) {
+                    projectileState = projectileState.tick(surface);
+                } else if (projectileState.moving) {
+                    // Move the projectile forward
+                    projectileState = projectileState.tick(surface);
+
+                    // Check for a collision
+                    var collision = bubbleState.checkForCollision(projectileState.position, rotation);
+                    if (collision.hit) {
+
+                        var pos;
+
+                        if (collision.type == "bubble") {
+                            // Calculate collision position relative to center
+                            pos = collision.bubble.position(rotation).sub(Point(0.5, 0.5));
+                        } else {
+                            pos = projectileState.position.sub(Point(0.5, 0.5));
+                        }
+
+                        // Derive the momentum of the projectile by multiplying its velocity by mass
+                        var projectileMomentum = projectileState.direction.mul(PROJECTILE_VELOCITY*PROJECTILE_MASS);
+
+                        // Some physics:
+                        // The projectile has a certain angular momentum relative to center, which is
+                        //
+                        //    L = r x p     (the cross product of the position vector and the momentum)
+                        //
+                        // We also know that the angular momentum of a rigid body is
+                        //
+                        //    L = I * w
+                        //
+                        // I being moment of inertia, and w being angular velocity. Since angular momentum
+                        // is conserved, we can calculate angular velocity like so:
+                        //
+                        // w = (r x p)/I
+                        angularVelocity += pos.crossZ(projectileMomentum)/bubbleState.momentOfInertia();
+                        if (Math.abs(angularVelocity) > Math.PI) {
+                            angularVelocity = angularVelocity/Math.abs(angularVelocity) * Math.PI; // retain sign
+                        }
+
+                        // Update bubble state based on the collision, and reset our projectile state
+                        bubbleState = bubbleState.collide(collision, projectileState, rotation, angularVelocity);
+                        projectileState = ProjectileState(bubbleState);
+                    }
+                }
+
+                // Animate collapsing bubbles, check for game over
+                bubbleState = bubbleState.tick(rotation);
+
+                // Rotate the bubbles, resetting to 0 as needed
+                rotation += angularVelocity;
+                while (rotation > 2*Math.PI) {
+                    rotation -= 2*Math.PI;
+                }
+                while (rotation < -2*Math.PI) {
+                    rotation += 2*Math.PI;
+                }
+
+                // Decrease angular velocity exponentially
+                if (Math.abs(angularVelocity) > 0) {
+                    angularVelocity *= 0.98;
+                }
+
+                // Draw the game, and schedule a new update
+                surface.draw(bubbleState, projectileState, rotation);
+                if (bubbleState.gameOver) {
+                    return;
+                }
+
+                requestAnimationFrame(update);
+            };
+
+            update();
+        });
+    })();
+    </script>
+</head>
+<body>
+    <canvas id="bubblespinner-canvas"></canvas>
+</body>
+</html>
