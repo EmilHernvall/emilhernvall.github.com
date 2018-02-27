@@ -110,6 +110,23 @@
             &raquo; <a href="https://github.com/EmilHernvall/bubblespinner">Source code</a>
             </p>
 
+            <h3>HostIMG (2017 - present)</h3>
+
+            <p>I've built many different image galleries throughout the years, and
+            most of them has generated thumbnails on demand, which causes a lousy
+            user experience when the gallery is first loaded. A better solution,
+            I believe, is to detect new images and do the work in the background
+            immediately. HostIMG is such a server written in Rust. Given a directory,
+            it'll use inotify to watch for changes, and automatically generate
+            thumbnails. A built-in web server serves up the images in the directory.</p>
+
+            <p>This is a low intensity work in progress project, which I'm extending
+            as needed.</p>
+
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/hostimg">Source code</a>
+            </p>
+
             <h3>Pacman (2017)</h3>
 
             <p class="image">
@@ -124,6 +141,31 @@
             <p class="links">
             &raquo; <a href="/pacman">Play Now</a>
             &raquo; <a href="https://github.com/EmilHernvall/pacman">Source code</a>
+            </p>
+
+            <h3>Cesium (2016 - present)</h3>
+
+            <p>Version control of database schemas has always been a pain, and the
+            existing solutions aren't very satisfactory. Furthermore, they don't
+            usually work well with multi-branch workflows in git/hg.</p>
+
+            <p>Cesium is my attempt at a solution. It uses a git-inspired patch-based
+            structure, where small sql patch files are chained together. The real
+            power of Cesium comes from its built-in sql parser, though: it can
+            understand the patches without talking to a server. This enables
+            comparison of different branches without talking to a server, comparison
+            of on-disk patches to a running server, and so on. Regardless of your
+            workflow, Cesium should support it better than existing solutions.</p>
+
+            <p>This is a rather ambitious project, which is still in an early
+            prototype stage. Much of the hard work has already been done, though,
+            and cesium can already successfully parse a sequence of patches and
+            describe the schema structure. It can also retrieve a database schema
+            from a running server. Current work is on applying changes in either 
+            direction.</p>
+
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/cesium">Source code</a>
             </p>
 
             <h3>Hermes (2016)</h3>
