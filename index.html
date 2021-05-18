@@ -57,25 +57,20 @@
 
             <div class="left">
                 <p>
-                This page is a collection of various experiments I've done throughout the years. Most of what
-                you'll find here are weekend projects, but a few are a bit more extensive.
+                    I'm Emil, a developer based in Stockholm, and currently working as an engineer at AWS.
+                    As of writing, I've been programming for 25 years, and professionally for the past 20.
+                    Since 2018, I've been working mostly in rust, which remains my favorite language.
                 </p>
-
+                
                 <p>
-                Although not as much nowadays, I used to be an active member at Stack Overflow. You can
-                check out my profile to the right.
+                    I'm currently not looking to change jobs. If you are looking to send me a message anyway,
+                    be aware that I'm unlikely to consider any position which isn't about rust.
                 </p>
             </div>
 
             <div class="right">
                 <p>
                 <img src="https://2.gravatar.com/avatar/88d764e133d0f8efa23c7fc033bfcb34?d=https%3A%2F%2Fidenticons.github.com%2Fcc401ab439f2fe0a467c6ee73961bdef.png&r=x&s=208" />
-                </p>
-
-                <p>
-                <a href="http://stackoverflow.com/users/73772/emil-h">
-                    <img src="http://stackoverflow.com/users/flair/73772.png" width="208" height="58">
-                </a>
                 </p>
             </div>
 
@@ -125,6 +120,18 @@
             representative of my professional work, but does convey a good picture of my interests.
             The major themes are graphics programming, network programming and programming languages.
             </p>
+            
+            <h3>Trip or Treat (2020)</h3>
+            
+            <p>
+                A display for showing the subway times in Stockholm, built using a raspberry pi and
+                a custom designed 3d printed case. This project includes the rust source code of
+                the display and the STL files for the case.
+            </p>
+            
+            <p class="links">
+            &raquo; <a href="https://github.com/EmilHernvall/triportreat">Source Code</a>
+            </p>
 
             <h3>Bubblespinner (2017)</h3>
 
@@ -147,7 +154,7 @@
             &raquo; <a href="https://github.com/EmilHernvall/bubblespinner">Source code</a>
             </p>
 
-            <h3>HostIMG (2017 - present)</h3>
+            <h3>HostIMG (2017)</h3>
 
             <p>I've built many different image galleries throughout the years, and
             most of them has generated thumbnails on demand, which causes a lousy
@@ -156,9 +163,6 @@
             immediately. HostIMG is such a server written in Rust. Given a directory,
             it'll use inotify to watch for changes, and automatically generate
             thumbnails. A built-in web server serves up the images in the directory.</p>
-
-            <p>This is a low intensity work in progress project, which I'm extending
-            as needed.</p>
 
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/hostimg">Source code</a>
@@ -180,26 +184,22 @@
             &raquo; <a href="https://github.com/EmilHernvall/pacman">Source code</a>
             </p>
 
-            <h3>Cesium (2016 - present)</h3>
+            <h3>Cesium (2016)</h3>
 
             <p>Version control of database schemas has always been a pain, and the
             existing solutions aren't very satisfactory. Furthermore, they don't
             usually work well with multi-branch workflows in git/hg.</p>
 
-            <p>Cesium is my attempt at a solution. It uses a git-inspired patch-based
-            structure, where small sql patch files are chained together. The real
-            power of Cesium comes from its built-in sql parser, though: it can
+            <p>Cesium was an attempt at a solution. It uses a git-inspired patch-based
+            structure, where small sql patch files are chained together. The key idea
+            of Cesium is the built-in sql parser: it can
             understand the patches without talking to a server. This enables
             comparison of different branches without talking to a server, comparison
-            of on-disk patches to a running server, and so on. Regardless of your
-            workflow, Cesium should support it better than existing solutions.</p>
-
-            <p>This is a rather ambitious project, which is still in an early
-            prototype stage. Much of the hard work has already been done, though,
-            and cesium can already successfully parse a sequence of patches and
-            describe the schema structure. It can also retrieve a database schema
-            from a running server. Current work is on applying changes in either 
-            direction.</p>
+            of on-disk patches to a running server, and so on.</p>
+            
+            <p>It was a successful experiment, which demonstrated the power of the
+            concept. I eventually lost interest as I migrated away from using MySQL
+            as a database.</p>
 
             <p class="links">
             &raquo; <a href="https://github.com/EmilHernvall/cesium">Source code</a>
@@ -258,7 +258,7 @@
             &raquo; <a href="https://github.com/EmilHernvall/RayTracer">Source code</a>
             </p>
 
-            <h3>UglyLang (2012-)</h3>
+            <h3>UglyLang (2012)</h3>
 
             <p>
             Toy programming language. It's currently implemented in Java, but I dream of bootstrapping
@@ -272,7 +272,7 @@
             &raquo; <a href="https://github.com/EmilHernvall/UglyLang">Source code</a>
             </p>
 
-            <h3>Tregmine (2011-)</h3>
+            <h3>Tregmine (2011)</h3>
 
             <p>
             Plugin for the bukkit minecraft server, that provides most of the features needed
@@ -376,22 +376,6 @@
             &raquo; <a href="downloads/collapsible.zip">Download</a>
             </p>
 
-            <h3>Calculator (2009)</h3>
-
-            <p>
-            A java program that evaluates arbitrary mathematical expressions.
-            Also includes some primitive plotting capabilities. I wrote this
-            before I had spent any time whatsoever researching parsing. If I
-            redid it today, I'd probably use ANTLR or a recursive descent parser.
-            This project used a completely ad-hoc approach, which turned out
-            surprisingly robust. Features a really crappy math shell.
-            </p>
-
-            <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/calculator">Source code</a>
-            &raquo; <a href="downloads/calc.jar">Download</a>
-            </p>
-
             <h3>Cropper (August 2008)</h3>
 
             <p class="image">
@@ -408,27 +392,6 @@
             <p class="links">
             &raquo; <a href="http://github.com/EmilHernvall/cropper">Source code</a>
             &raquo; <a href="downloads/cropper.zip">Download</a>
-            </p>
-
-            <h3>Project Euler Solutions (2008)</h3>
-
-            <p>
-            Solutions for the hundred first <a href="http://projecteuler.net/">Project Euler</a>
-            or so. Some problems have several solutions, and not all of them might work. A few
-            problems (probably less than five) have partial solutions that doesn't give the
-            correct answer.
-            </p>
-
-            <p>
-            This repository contains solutions in several different languages. Most of them
-            are written in python, since I started doing Project Euler solutions as a way
-            of learning that language. However, there are some solutions I've done in C as
-            a way of practicing low-level optimization, and there's a few in Haskell which
-            I also did for learning purposes. Warning: My Haskell is pretty awful.
-            </p>
-
-            <p class="links">
-            &raquo; <a href="https://github.com/EmilHernvall/projecteuler">Source code</a>
             </p>
 
             <h3>Mosaic (2008)</h3>
