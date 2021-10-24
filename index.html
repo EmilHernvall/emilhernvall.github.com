@@ -30,13 +30,14 @@
             h3 {
                 margin-top: 40px;
             }
+            .columns {
+                display: flex;
+            }
             .left {
-                width: 570px;
-                float: left;
+                flex: 1;
             }
             .right {
                 width: 210px;
-                float: right;
             }
             .clear {
                 clear: both;
@@ -55,26 +56,26 @@
 
             <h1>Emil Hernvall</h1>
 
-            <div class="left">
-                <p>
-                    I'm Emil, a developer based in Stockholm, and currently working as an engineer at AWS.
-                    As of writing, I've been programming for 25 years, and professionally for the past 20.
-                    Since 2018, I've been working mostly in rust, which remains my favorite language.
-                </p>
-                
-                <p>
-                    I'm currently not looking to change jobs. If you are a recruiter thinking of sending me
-                    a message anyway, be aware that I'm unlikely to consider any position which isn't about rust.
-                </p>
-            </div>
+            <div class="columns">
+                <div class="left">
+                    <p>
+                        I'm Emil, a developer based in Stockholm, and currently working as an engineer at AWS.
+                        As of writing, I've been programming for 25 years, and professionally for the past 20.
+                        Since 2018, I've been working mostly in rust, which remains my favorite language.
+                    </p>
 
-            <div class="right">
-                <p>
-                <img src="https://avatars.githubusercontent.com/u/507999?v=4" />
-                </p>
-            </div>
+                    <p>
+                        I'm currently not looking to change jobs. If you are a recruiter thinking of sending me
+                        a message anyway, be aware that I'm unlikely to consider any position which isn't about rust.
+                    </p>
+                </div>
 
-            <div class="clear">&nbsp;</div>
+                <div class="right">
+                    <p>
+                    <img src="https://avatars.githubusercontent.com/u/507999?v=4" style="width: 200px"; />
+                    </p>
+                </div>
+            </div>
 
             <h2>Articles</h2>
 
